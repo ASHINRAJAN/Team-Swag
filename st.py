@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+from collections import Counter
 
 # Function to classify instance using the decision tree
 def classify(instance, tree, default=None):
@@ -13,9 +13,6 @@ def classify(instance, tree, default=None):
             return result
     else:
         return default
-
-# Load the tennis dataset
-df_tennis = pd.read_csv('tennis2.csv')
 
 # ID3 algorithm
 def id3(df, target, attribute_name, default_class=None):
@@ -36,15 +33,38 @@ def id3(df, target, attribute_name, default_class=None):
             tree[best_attr][attr_val] = subtree
         return tree
 
+# Function to calculate information gain
+def info_gain(df, split, target):
+    df_split = df.groupby(split)
+    nobs = len(df.index) * 1.0
+    df_agg_ent = df_split.agg({target: [entropy_list, lambda x: len(x) / nobs]})
+    df_agg_ent.columns = ['Entropy', 'PropObserved']
+    new_entropy = sum(df_agg_ent['Entropy'] * df_agg_ent["PropObserved"])
+    old_entropy = entropy_list(df[target])
+    return old_entropy - new_entropy
+
+# Function to calculate entropy
+def entropy_list(a_list):
+    cnt = Counter(x for x in a_list)
+    num_instance = len(a_list) * 1.0
+    probs = [x / num_instance for x in cnt.values()]
+    return entropy(probs)
+
+def entropy(probs):
+    import math
+    return sum([-prob * math.log(prob, 2) for prob in probs])
+
+# Load the tennis dataset
+df_tennis = pd.read_csv('tennis2.csv')
+
 # Streamlit UI
 st.title('Tennis Play Prediction')
 
 # Input fields for user input
-st.write('Enter values for the attributes to predict PlayTennis:')
-outlook = st.selectbox('Outlook', df_tennis['Outlook'].unique())
-temperature = st.selectbox('Temperature', df_tennis['Temperature'].unique())
-humidity = st.selectbox('Humidity', df_tennis['Humidity'].unique())
-windy = st.selectbox('Windy', df_tennis['Windy'].unique())
+outlook = st.text_input('Outlook (Sunny, Overcast, Rainy)')
+temperature = st.text_input('Temperature (Hot, Mild, Cool)')
+humidity = st.text_input('Humidity (High, Normal)')
+windy = st.text_input('Windy (Weak, Strong)')
 
 # Predict function
 def predict(outlook, temperature, humidity, windy):
