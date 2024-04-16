@@ -111,4 +111,11 @@ def predict(root_node, input_values):
         if value in current_node.children:
             current_node = current_node.children[value]
         else:
-            return "Unable to 
+            return "Unable to make prediction"
+    return current_node.result
+
+# Make prediction
+prediction = predict(root_node, input_values)
+
+# Display prediction
+st.write('Prediction:', prediction)
