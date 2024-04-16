@@ -1,16 +1,17 @@
-# Neural Network with Backpropagation
+# Candidate Elimination Algorithm
 
-This code implements a simple neural network with backpropagation using Python and NumPy.
+This code implements the Candidate Elimination Algorithm, a machine learning algorithm for concept learning.
 
 ## Overview
 
-- `neural_network.py`: Python script containing the neural network implementation.
+- `candidate_elimination.py`: Python script containing the implementation of the Candidate Elimination Algorithm.
 - `README.md`: This file, providing an overview of the code and instructions for usage.
 
 ## Requirements
 
 - Python 3.x
 - NumPy
+- pandas
 
 ## Usage
 
@@ -27,30 +28,31 @@ markdown
 Copy code
 
 3. Run the script:
-python neural_network.py
+python candidate_elimination.py
 
 markdown
 Copy code
 
 ## Description
 
-The neural network implemented in `neural_network.py` consists of an input layer, a hidden layer, and an output layer. The activation function used is the sigmoid function.
+The Candidate Elimination Algorithm is used for concept learning in machine learning. It iteratively updates the hypothesis space based on the training data until a consistent and minimal hypothesis is achieved.
 
-- `sigmoid(x)`: Sigmoid activation function.
-- `sigmoid_grad(x)`: Derivative of the sigmoid function.
+The script `candidate_elimination.py` contains the implementation of this algorithm. It reads a CSV file containing training data (features and target labels), learns the hypothesis space, and outputs the final specific and general hypotheses.
 
-The network is trained using backpropagation for a specified number of epochs (`epoch`). It takes input data `X` and corresponding output labels `y`, normalizes the input, and then updates the weights and biases iteratively using the backpropagation algorithm.
+## File Structure
 
-After training, the script prints the normalized input, actual output, and predicted output.
+- `candidate_elimination.py`: Python script containing the implementation of the Candidate Elimination Algorithm.
+- `trainingdata.csv`: Sample CSV file containing training data with features and target labels.
 
-## Parameters
+## Algorithm Steps
 
-- `epoch`: Number of training epochs.
-- `eta`: Learning rate.
-- `input_neurons`: Number of neurons in the input layer.
-- `hidden_neurons`: Number of neurons in the hidden layer.
-- `output_neurons`: Number of neurons in the output layer.
+1. Initialization of specific and general hypotheses.
+2. Iteratively update the hypotheses based on the training instances:
+   - If the instance is positive, update specific and general hypotheses accordingly.
+   - If the instance is negative, update general hypotheses accordingly.
+3. Remove inconsistent hypotheses from the general hypothesis space.
+4. Return the final specific and general hypotheses.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.# Team-Swag
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
