@@ -2,14 +2,6 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Load the Iris dataset
-def load_iris():
-    from sklearn import datasets
-    iris = datasets.load_iris()
-    return iris.data, iris.target, iris.feature_names, iris.target_names
-
-X, y, feature_names, target_names = load_iris()
-
 # Define Decision Tree classifier
 class DecisionTreeClassifier:
     def __init__(self):
@@ -34,9 +26,13 @@ class DecisionTreeClassifier:
         else:
             return 2
 
-# Train the Decision Tree classifier
-clf = DecisionTreeClassifier()
-clf.fit(X, y)
+# Load the Iris dataset
+def load_iris():
+    from sklearn import datasets
+    iris = datasets.load_iris()
+    return iris.data, iris.target, iris.feature_names, iris.target_names
+
+X, y, feature_names, target_names = load_iris()
 
 # Streamlit UI
 st.title('Iris Flower Classifier')
@@ -48,6 +44,10 @@ sepal_length = st.number_input('Sepal Length', min_value=0.0, step=0.1)
 sepal_width = st.number_input('Sepal Width', min_value=0.0, step=0.1)
 petal_length = st.number_input('Petal Length', min_value=0.0, step=0.1)
 petal_width = st.number_input('Petal Width', min_value=0.0, step=0.1)
+
+# Train the Decision Tree classifier
+clf = DecisionTreeClassifier()
+clf.fit(X, y)
 
 # Predict class of new sample
 sample = [sepal_length, sepal_width, petal_length, petal_width]
