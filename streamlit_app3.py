@@ -1,32 +1,59 @@
 import streamlit as st
-from sklearn.datasets import load_iris
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
+import pandas as pd
+import numpy as np
 
-# Load the Iris dataset
-iris = load_iris()
-X = iris.data
-y = iris.target
+# Function to classify instance using the decision tree
+def classify(instance, tree, default=None):
+    attribute = next(iter(tree))
+    if instance[attribute] in tree[attribute].keys():
+        result = tree[attribute][instance[attribute]]
+        if isinstance(result, dict):
+            return classify(instance, result)
+        else:
+            return result
+    else:
+        return default
 
-# Split the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Load the tennis dataset
+df_tennis = pd.read_csv('tennis2.csv')
 
-# Train the Decision Tree classifier
-clf = DecisionTreeClassifier()
-clf.fit(X_train, y_train)
+# ID3 algorithm
+def id3(df, target, attribute_name, default_class=None):
+    cnt = Counter(x for x in df[target])
+    if len(cnt) == 1:
+        return next(iter(cnt))
+    elif df.empty or (not attribute_name):
+        return default_class
+    else:
+        default_class = max(cnt.keys())
+        gains = [info_gain(df, attr, target) for attr in attribute_name]
+        index_max = gains.index(max(gains))
+        best_attr = attribute_name[index_max]
+        tree = {best_attr: {}}
+        remaining_attr = [x for x in attribute_name if x != best_attr]
+        for attr_val, data_subset in df.groupby(best_attr):
+            subtree = id3(data_subset, target, remaining_attr, default_class)
+            tree[best_attr][attr_val] = subtree
+        return tree
 
 # Streamlit UI
-st.title('Iris Flower Classifier')
+st.title('Tennis Play Prediction')
 
-# Input for new sample
-sepal_length = st.number_input('Enter Sepal Length:', min_value=0.0, step=0.1)
-sepal_width = st.number_input('Enter Sepal Width:', min_value=0.0, step=0.1)
-petal_length = st.number_input('Enter Petal Length:', min_value=0.0, step=0.1)
-petal_width = st.number_input('Enter Petal Width:', min_value=0.0, step=0.1)
+# Input fields for user input
+st.write('Enter values for the attributes to predict PlayTennis:')
+outlook = st.selectbox('Outlook', df_tennis['Outlook'].unique())
+temperature = st.selectbox('Temperature', df_tennis['Temperature'].unique())
+humidity = st.selectbox('Humidity', df_tennis['Humidity'].unique())
+windy = st.selectbox('Windy', df_tennis['Windy'].unique())
 
-# Predict class of new sample
-sample = [[sepal_length, sepal_width, petal_length, petal_width]]
-predicted_class = clf.predict(sample)[0]
+# Predict function
+def predict(outlook, temperature, humidity, windy):
+    instance = {'Outlook': outlook, 'Temperature': temperature, 'Humidity': humidity, 'Windy': windy}
+    result = classify(instance, tree, 'No')  # Default to 'No' if prediction cannot be made
+    return result
+
+# Make prediction
+prediction = predict(outlook, temperature, humidity, windy)
 
 # Display prediction
-st.write('The predicted class for the given sample is:', iris.target_names[predicted_class])
+st.write('Prediction:', prediction)
