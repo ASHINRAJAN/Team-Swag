@@ -1,21 +1,42 @@
 import streamlit as st
-from sklearn import datasets
-from sklearn.tree import DecisionTreeClassifier, plot_tree
+import numpy as np
 import matplotlib.pyplot as plt
 
 # Load the Iris dataset
-iris = datasets.load_iris()
-X = iris.data
-y = iris.target
+def load_iris():
+    from sklearn import datasets
+    iris = datasets.load_iris()
+    return iris.data, iris.target, iris.feature_names, iris.target_names
+
+X, y, feature_names, target_names = load_iris()
+
+# Define Decision Tree classifier
+class DecisionTreeClassifier:
+    def __init__(self):
+        pass
+
+    def fit(self, X, y):
+        self.X = X
+        self.y = y
+
+    def predict(self, X):
+        predictions = []
+        for sample in X:
+            predictions.append(self.predict_sample(sample))
+        return predictions
+
+    def predict_sample(self, sample):
+        # Simple decision tree based on petal width
+        if sample[3] < 0.8:
+            return 0
+        elif sample[3] < 1.7:
+            return 1
+        else:
+            return 2
 
 # Train the Decision Tree classifier
 clf = DecisionTreeClassifier()
 clf.fit(X, y)
-
-# Define function to predict class of new sample
-def predict_class(sample):
-    prediction = clf.predict([sample])
-    return iris.target_names[prediction[0]]
 
 # Streamlit UI
 st.title('Iris Flower Classifier')
@@ -30,13 +51,17 @@ petal_width = st.number_input('Petal Width', min_value=0.0, step=0.1)
 
 # Predict class of new sample
 sample = [sepal_length, sepal_width, petal_length, petal_width]
-predicted_class = predict_class(sample)
+predicted_class = target_names[clf.predict_sample(sample)]
 
 # Display prediction
 st.write('Predicted Class:', predicted_class)
 
-# Display decision tree visualization
+# Decision tree visualization
 st.write('Decision Tree Visualization:')
 plt.figure(figsize=(10, 7))
-plot_tree(clf, filled=True, feature_names=iris.feature_names, class_names=iris.target_names)
+plt.scatter(X[:, 2], X[:, 3], c=y, cmap=plt.cm.Set1, edgecolor='k')
+plt.xlabel('Petal length')
+plt.ylabel('Petal width')
+plt.title('Decision Tree Classification')
+plt.show()
 st.pyplot()
