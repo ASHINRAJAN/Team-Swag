@@ -56,4 +56,4 @@ After predicting the class of the new sample, the script displays the prediction
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for detai
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
