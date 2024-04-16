@@ -53,8 +53,8 @@ def calc_information_gain(data, target, attribute):
 
 # Function to calculate entropy
 def entropy(target):
-    classes, counts = np.unique(target, return_counts=True)
-    probabilities = counts / len(target)
+    value_counts = target.value_counts()  # Count occurrences of each unique class label
+    probabilities = value_counts / len(target)
     entropy_value = -np.sum(probabilities * np.log2(probabilities))
     return entropy_value
 
