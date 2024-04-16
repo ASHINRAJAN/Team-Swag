@@ -1,6 +1,7 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
+import numpy as np
+from sklearn.datasets import load_iris
 
 # Define Node class for Decision Tree
 class Node:
@@ -53,7 +54,7 @@ def calc_information_gain(data, target, attribute):
 
 # Function to calculate entropy
 def entropy(target):
-    value_counts = target.value_counts()  # Count occurrences of each unique class label
+    value_counts = pd.Series(target).value_counts()  # Count occurrences of each unique class label
     probabilities = value_counts / len(target)
     entropy_value = -np.sum(probabilities * np.log2(probabilities))
     return entropy_value
@@ -61,32 +62,20 @@ def entropy(target):
 # Streamlit UI
 st.title('ID3 Decision Tree Classifier')
 
-# Synthetic dataset generation
-@st.cache
-def generate_data():
-    np.random.seed(0)
-    data = pd.DataFrame({
-        'Outlook': np.random.choice(['Sunny', 'Overcast', 'Rainy'], size=100),
-        'Temperature': np.random.choice(['Hot', 'Mild', 'Cool'], size=100),
-        'Humidity': np.random.choice(['High', 'Normal'], size=100),
-        'Windy': np.random.choice(['Weak', 'Strong'], size=100),
-        'PlayTennis': np.random.choice(['Yes', 'No'], size=100)
-    })
-    return data
-
-data = generate_data()
-st.write('Generated Dataset:')
-st.write(data)
+# Load the Iris dataset
+iris = load_iris()
+X = pd.DataFrame(iris.data, columns=iris.feature_names)
+y = pd.Series(iris.target, name='target')
 
 # Select target column
-target_column = st.selectbox("Select the target column", options=data.columns)
+target_column = st.selectbox("Select the target column", options=X.columns)
 
 # Remove target column from list of attributes
-attributes = list(data.columns)
+attributes = list(X.columns)
 attributes.remove(target_column)
 
 # Build decision tree
-root_node = id3(data, data[target_column], attributes)
+root_node = id3(X, y, attributes)
 
 # Display decision tree
 st.write('Decision Tree:')
@@ -95,12 +84,9 @@ st.write(root_node)
 # Input fields for user input
 st.write('Enter values for the attributes to make a prediction:')
 input_values = {}
-for attribute in data.columns:
+for attribute in X.columns:
     if attribute != target_column:
-        if data[attribute].dtype == 'object':
-            input_values[attribute] = st.selectbox(f"Select value for {attribute}", options=data[attribute].unique())
-        else:
-            input_values[attribute] = st.number_input(f"Enter value for {attribute}")
+        input_values[attribute] = st.number_input(f"Enter value for {attribute}")
 
 # Predict function
 def predict(root_node, input_values):
@@ -118,4 +104,4 @@ def predict(root_node, input_values):
 prediction = predict(root_node, input_values)
 
 # Display prediction
-st.write('Prediction:', prediction)
+st.write('Prediction:', iris.target_names[prediction])
