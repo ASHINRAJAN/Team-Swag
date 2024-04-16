@@ -97,7 +97,10 @@ st.write('Enter values for the attributes to make a prediction:')
 input_values = {}
 for attribute in data.columns:
     if attribute != target_column:
-        input_values[attribute] = st.selectbox(f"Select value for {attribute}", options=data[attribute].unique())
+        if data[attribute].dtype == 'object':
+            input_values[attribute] = st.selectbox(f"Select value for {attribute}", options=data[attribute].unique())
+        else:
+            input_values[attribute] = st.number_input(f"Enter value for {attribute}")
 
 # Predict function
 def predict(root_node, input_values):
@@ -108,11 +111,4 @@ def predict(root_node, input_values):
         if value in current_node.children:
             current_node = current_node.children[value]
         else:
-            return "Unable to make prediction"
-    return current_node.result
-
-# Make prediction
-prediction = predict(root_node, input_values)
-
-# Display prediction
-st.write('Prediction:', prediction)
+            return "Unable to 
