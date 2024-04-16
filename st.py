@@ -1,20 +1,27 @@
 import streamlit as st
 import pandas as pd
 from collections import Counter
+import math
 
-# Function to classify instance using the decision tree
-def classify(instance, tree, default=None):
-    attribute = next(iter(tree))
-    if instance[attribute] in tree[attribute].keys():
-        result = tree[attribute][instance[attribute]]
-        if isinstance(result, dict):
-            return classify(instance, result)
-        else:
-            return result
-    else:
-        return default
+# Define functions for ID3 algorithm
+def entropy_list(a_list):
+    cnt = Counter(x for x in a_list)
+    num_instance = len(a_list) * 1.0
+    probs = [x / num_instance for x in cnt.values()]
+    return entropy(probs)
 
-# ID3 algorithm
+def entropy(probs):
+    return sum([-prob * math.log(prob, 2) for prob in probs])
+
+def info_gain(df, split, target, trace=0):
+    df_split = df.groupby(split)
+    nobs = len(df.index) * 1.0
+    df_agg_ent = df_split.agg({target: [entropy_list, lambda x: len(x) / nobs]})
+    df_agg_ent.columns = ['Entropy', 'PropObserved']
+    new_entropy = sum(df_agg_ent['Entropy'] * df_agg_ent["PropObserved"])
+    old_entropy = entropy_list(df[target])
+    return old_entropy - new_entropy
+
 def id3(df, target, attribute_name, default_class=None):
     cnt = Counter(x for x in df[target])
     if len(cnt) == 1:
@@ -33,47 +40,36 @@ def id3(df, target, attribute_name, default_class=None):
             tree[best_attr][attr_val] = subtree
         return tree
 
-# Function to calculate information gain
-def info_gain(df, split, target):
-    df_split = df.groupby(split)
-    nobs = len(df.index) * 1.0
-    df_agg_ent = df_split.agg({target: [entropy_list, lambda x: len(x) / nobs]})
-    df_agg_ent.columns = ['Entropy', 'PropObserved']
-    new_entropy = sum(df_agg_ent['Entropy'] * df_agg_ent["PropObserved"])
-    old_entropy = entropy_list(df[target])
-    return old_entropy - new_entropy
+def classify(instance, tree, default=None):
+    attribute = next(iter(tree))
+    if instance[attribute] in tree[attribute].keys():
+        result = tree[attribute][instance[attribute]]
+        if isinstance(result, dict):
+            return classify(instance, result)
+        else:
+            return result
+    else:
+        return default
 
-# Function to calculate entropy
-def entropy_list(a_list):
-    cnt = Counter(x for x in a_list)
-    num_instance = len(a_list) * 1.0
-    probs = [x / num_instance for x in cnt.values()]
-    return entropy(probs)
-
-def entropy(probs):
-    import math
-    return sum([-prob * math.log(prob, 2) for prob in probs])
-
-# Load the tennis dataset
+# Load data
 df_tennis = pd.read_csv('tennis2.csv')
 
 # Streamlit UI
-st.title('Tennis Play Prediction')
+st.title('Tennis Play Predictor')
 
 # Input fields for user input
-outlook = st.text_input('Outlook (Sunny, Overcast, Rainy)')
-temperature = st.text_input('Temperature (Hot, Mild, Cool)')
-humidity = st.text_input('Humidity (High, Normal)')
-windy = st.text_input('Windy (Weak, Strong)')
+input_values = {}
+for attribute in df_tennis.columns:
+    if attribute != 'PlayTennis':
+        input_values[attribute] = st.selectbox(f"Select value for {attribute}", options=df_tennis[attribute].unique())
 
-# Predict function
-def predict(outlook, temperature, humidity, windy):
-    instance = {'Outlook': outlook, 'Temperature': temperature, 'Humidity': humidity, 'Windy': windy}
-    result = classify(instance, tree, 'No')  # Default to 'No' if prediction cannot be made
-    return result
+# Train decision tree
+attribute_names = list(df_tennis.columns)
+attribute_names.remove('PlayTennis')
+tree = id3(df_tennis, 'PlayTennis', attribute_names)
 
-# Make prediction
-prediction = predict(outlook, temperature, humidity, windy)
+# Predict outcome
+predicted_outcome = classify(input_values, tree)
 
 # Display prediction
-st.write('Prediction:', prediction)
+st.write('Predicted Outcome:', predicted_outcome)
