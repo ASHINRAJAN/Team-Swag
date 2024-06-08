@@ -47,7 +47,7 @@ def main():
     st.title("Iris Clustering Visualization")
 
     # Load the Iris dataset
-    data = np.genfromtxt("iris.csv", delimiter=",", skip_header=1)
+    data = np.genfromtxt("Downloads/iris.csv", delimiter=",", skip_header=1)
     X = data[:, :-1]  # Features
     y = data[:, -1]   # Labels
 
