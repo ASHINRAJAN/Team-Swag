@@ -25,8 +25,8 @@ def locally_weighted_regression(x0, X, Y, tau):
     x0 = np.r_[1, x0]  # Add intercept term
     X = np.c_[np.ones(m), X]  # Add intercept term
     
-    # Calculate weights
-    W = np.exp(-np.sum((X - x0)*2, axis=1) / (2 * tau*2))
+    # Calculate weights using Gaussian kernel
+    W = np.exp(-np.sum((X[:, 1:] - x0[1:])**2, axis=1) / (2 * tau**2))
     
     # Compute the theta values using normal equation
     theta = np.linalg.inv(X.T @ (W[:, None] * X)) @ (X.T @ (W * Y))
@@ -68,5 +68,5 @@ def main():
     # Display plot in Streamlit
     st.pyplot(fig)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
