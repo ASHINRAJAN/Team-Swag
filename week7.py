@@ -47,9 +47,8 @@ def main():
     st.title("Iris Clustering Visualization")
 
     # Load the Iris dataset
-    data = np.genfromtxt("Downloads/iris.csv", delimiter=",", skip_header=1)
-    X = data[:, :-1]  # Features
-    y = data[:, -1]   # Labels
+    X = np.genfromtxt("iris.csv", delimiter=",", usecols=(0,1,2,3), skip_header=1)
+    y = np.genfromtxt("iris.csv", delimiter=",", usecols=4, skip_header=1, dtype=str)
 
     # Perform K-means clustering
     kmeans_labels, kmeans_centroids = kmeans(X, k=3)
