@@ -1,90 +1,71 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import streamlit as st
 
-# KMeans Algorithm
-def kmeans(X, n_clusters, max_iters=100):
-    centroids = X[np.random.choice(len(X), n_clusters, replace=False)]
+# K-means clustering algorithm
+def kmeans(X, k, max_iters=100):
+    n_samples, n_features = X.shape
+    centroids = X[np.random.choice(n_samples, k, replace=False)]
     for _ in range(max_iters):
-        # Assign each point to the nearest centroid
-        labels = np.argmin(np.linalg.norm(X[:, np.newaxis] - centroids, axis=2), axis=1)
+        # Assign clusters
+        distances = np.linalg.norm(X[:, np.newaxis] - centroids, axis=2)
+        labels = np.argmin(distances, axis=1)
         # Update centroids
-        new_centroids = np.array([X[labels == i].mean(axis=0) for i in range(n_clusters)])
+        new_centroids = np.array([X[labels == i].mean(axis=0) for i in range(k)])
         # Check for convergence
         if np.allclose(centroids, new_centroids):
             break
         centroids = new_centroids
     return labels, centroids
 
-# Gaussian Mixture Model Algorithm
-def gmm(X, n_components, max_iters=100):
-    # Initialize parameters
+# Gaussian Mixture Model (GMM) clustering algorithm
+def gmm(X, k, max_iters=100):
     n_samples, n_features = X.shape
-    weights = np.ones(n_components) / n_components
-    means = X[np.random.choice(n_samples, n_components, replace=False)]
-    covariances = np.array([np.cov(X.T) for _ in range(n_components)])
-    responsibilities = np.zeros((n_samples, n_components))
-
+    # Initialize parameters
+    weights = np.ones(k) / k
+    means = X[np.random.choice(n_samples, k, replace=False)]
+    covariances = np.array([np.cov(X.T) for _ in range(k)])
+    responsibilities = np.zeros((n_samples, k))
     # EM algorithm
     for _ in range(max_iters):
         # E-step: Compute responsibilities
         for i in range(n_samples):
-            for k in range(n_components):
-                responsibilities[i, k] = weights[k] * multivariate_normal(X[i], means[k], covariances[k])
+            for j in range(k):
+                responsibilities[i, j] = weights[j] * multivariate_normal(X[i], means[j], covariances[j])
         responsibilities /= responsibilities.sum(axis=1)[:, np.newaxis]
-
         # M-step: Update parameters
         Nk = responsibilities.sum(axis=0)
         weights = Nk / n_samples
         means = (responsibilities.T @ X) / Nk[:, np.newaxis]
-        covariances = np.array([((responsibilities[:, k] * (X - means[k]).T) @ (X - means[k])) / Nk[k] for k in range(n_components)])
-
+        covariances = np.array([((responsibilities[:, j] * (X - means[j]).T) @ (X - means[j])) / Nk[j] for j in range(k)])
     return responsibilities.argmax(axis=1), means
 
 # Multivariate normal PDF
 def multivariate_normal(x, mean, cov):
     return np.exp(-0.5 * (x - mean) @ np.linalg.inv(cov) @ (x - mean).T) / np.sqrt(np.linalg.det(cov) * (2 * np.pi) ** len(x))
 
-# Load Iris dataset
-def load_iris():
-    data = np.genfromtxt("iris.csv", delimiter=",", skip_header=1)
-    X = data[:, :-1]  # Features
-    y = data[:, -1]   # Labels
-    return X, y
-
 def main():
     st.title("Iris Clustering Visualization")
 
     # Load the Iris dataset
-    X, y = load_iris()
+    data = np.genfromtxt("iris.csv", delimiter=",", skip_header=1)
+    X = data[:, :-1]  # Features
+    y = data[:, -1]   # Labels
 
-    # Fit KMeans
-    kmeans_labels, kmeans_centroids = kmeans(X, n_clusters=3)
+    # Perform K-means clustering
+    kmeans_labels, kmeans_centroids = kmeans(X, k=3)
 
-    # Fit Gaussian Mixture Model
-    gmm_labels, gmm_means = gmm(X, n_components=3)
+    # Perform Gaussian Mixture Model (GMM) clustering
+    gmm_labels, gmm_means = gmm(X, k=3)
 
-    # Plotting the results
-    plt.figure(figsize=(14, 7))
+    # Display K-means clustering results
+    st.subheader("K-means Clustering Results")
+    st.write("Labels:", kmeans_labels)
+    st.write("Centroids:", kmeans_centroids)
 
-    # Plot KMeans clusters
-    plt.subplot(1, 2, 1)
-    plt.scatter(X[:, 0], X[:, 1], c=kmeans_labels, cmap='viridis', s=50, alpha=0.5)
-    plt.scatter(kmeans_centroids[:, 0], kmeans_centroids[:, 1], c='red', marker='x', s=200)
-    plt.title('KMeans Clustering')
-    plt.xlabel('Sepal Length')
-    plt.ylabel('Sepal Width')
-
-    # Plot Gaussian Mixture Model clusters
-    plt.subplot(1, 2, 2)
-    plt.scatter(X[:, 0], X[:, 1], c=gmm_labels, cmap='viridis', s=50, alpha=0.5)
-    plt.scatter(gmm_means[:, 0], gmm_means[:, 1], c='red', marker='x', s=200)
-    plt.title('Gaussian Mixture Model Clustering')
-    plt.xlabel('Sepal Length')
-    plt.ylabel('Sepal Width')
-
-    # Display the plots
-    st.pyplot()
+    # Display GMM clustering results
+    st.subheader("Gaussian Mixture Model (GMM) Clustering Results")
+    st.write("Labels:", gmm_labels)
+    st.write("Means:", gmm_means)
 
 if __name__ == "__main__":
     main()
