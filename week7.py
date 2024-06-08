@@ -42,8 +42,9 @@ def main():
     plt.subplot(1, 3, 3)
     plt.scatter(X.Petal_Length, X.Petal_Width, c=colormap[y_cluster_gmm], s=40)
     plt.title('GMM Classification')
+    
     # Display the plots
-    st.pyplot()
+    st.pyplot(plt)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
